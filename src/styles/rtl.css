@@ -1,0 +1,89 @@
+/* ============================================================
+   RTL: direction-specific overrides. Loaded last so it wins over
+   the logical-property conversions in the other stylesheets.
+   ============================================================ */
+
+/* Directional icons (back/forward, chevrons, drawer toggle) mirror. */
+[dir='rtl'] .flip-rtl {
+  transform: scaleX(-1);
+}
+
+/* Latin-only tokens (task keys, emails, URLs) never reorder inside RTL text. */
+[dir='rtl'] .mono,
+[dir='rtl'] kbd,
+[dir='rtl'] .kbd {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Centered fixed surfaces: mirror the centering transform. */
+[dir='rtl'] .bulkbar,
+[dir='rtl'] .palette {
+  transform: translateX(50%);
+}
+[dir='rtl'] [data-tip]:hover::after,
+[dir='rtl'] [data-tip]:focus-visible::after {
+  transform: translateX(50%);
+}
+[dir='rtl'] .drawer.full {
+  transform: translateX(-50%);
+}
+
+/* Side tooltips always open toward the content, whichever side the anchor is on. */
+[dir='rtl'] [data-tip-pos='right']:hover::after,
+[dir='rtl'] [data-tip-pos='right']:focus-visible::after {
+  inset-inline-start: auto;
+  right: calc(100% + 8px);
+  transform: translateY(-50%);
+}
+
+/* Drawer slides in from its own edge, with the shadow on the content side. */
+[dir='rtl'] .drawer {
+  box-shadow: 18px 0 40px -24px rgba(0, 0, 0, 0.25);
+}
+[dir='rtl'] .drawer.enter {
+  animation-name: drawerInRtl;
+}
+@keyframes drawerInRtl {
+  from {
+    transform: translateX(-48px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+/* Mobile sidebar hides past the start edge. */
+@media (max-width: 900px) {
+  [dir='rtl'] .side {
+    transform: translateX(100%);
+  }
+  [dir='rtl'] .shell.mnav .side {
+    transform: none;
+  }
+}
+
+/* Switch thumb travels the other way. */
+[dir='rtl'] .toggle:checked::after {
+  transform: translateX(-12px);
+}
+
+/* Onboarding steps slide in from the start edge and fill from it. */
+[dir='rtl'] .onb.fx-step > *:not(.steps) {
+  animation-name: slideInL;
+}
+[dir='rtl'] .steps i {
+  transform-origin: right;
+}
+@keyframes slideInL {
+  from {
+    opacity: 0;
+    transform: translateX(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
