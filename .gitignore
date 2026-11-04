@@ -6,3 +6,4 @@ dist/
 __MACOSX/
 *.log
 .env*
+!.env.example

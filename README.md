@@ -32,6 +32,27 @@ wizard tests that connection, creates the schema, creates the owner account, and
 imports demo data. It never asks for or stores database credentials.
 See [docs/api.md](docs/api.md#running-self-hosted).
 
+## Docker
+
+PostgreSQL and the app start together; everything is stored in Docker volumes.
+
+```bash
+cp .env.example .env      # optional: change POSTGRES_PASSWORD
+docker compose up --build # open http://localhost:4000 and finish the setup wizard
+```
+
+Rebuild after code changes with `docker compose up --build`. Data lives in the `pgdata` and
+`appdata` volumes; `docker compose down -v` deletes it.
+
+To use an external database instead, build and run the image directly with `DATABASE_URL`:
+
+```bash
+docker build -t gr8r-studio .
+docker run -p 4000:4000 -v gr8r-data:/data \
+  -e DATABASE_URL='postgresql://user:password@host:5432/database' \
+  gr8r-studio
+```
+
 ## Project structure
 
 ```

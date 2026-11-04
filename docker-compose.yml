@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-gr8r}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gr8r}
+      POSTGRES_DB: ${POSTGRES_DB:-gr8r}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-gr8r} -d ${POSTGRES_DB:-gr8r}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build: .
+    ports:
+      - '${PORT:-4000}:4000'
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-gr8r}:${POSTGRES_PASSWORD:-gr8r}@db:5432/${POSTGRES_DB:-gr8r}
+      DATA_DIR: /data
+      HOST: 0.0.0.0
+      PORT: 4000
+      SESSION_SECRET: ${SESSION_SECRET:-}
+      SETUP_TOKEN: ${SETUP_TOKEN:-}
+      TRUST_PROXY: ${TRUST_PROXY:-0}
+    volumes:
+      - appdata:/data
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  appdata:
