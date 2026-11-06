@@ -44,12 +44,12 @@ endpoints lock permanently after completion.
 
 ## Authentication
 
-Registration is open after setup. Passwords are hashed with Argon2id and sessions use an opaque
-HTTP-only cookie (`gr8r_session`) whose hash is stored in the `sessions` table.
+Registration is disabled after setup. Owners and admins create accounts from workspace settings;
+passwords are hashed with Argon2id and sessions use an opaque HTTP-only cookie (`gr8r_session`)
+whose hash is stored in the `sessions` table.
 
 | Method | Path                            | Description                                        |
 | ------ | ------------------------------- | -------------------------------------------------- |
-| POST   | `/api/auth/signup`              | Create a user + owned workspace, then log in       |
 | POST   | `/api/auth/login`               | Email/password login                               |
 | POST   | `/api/auth/logout`              | Revoke the current session                         |
 | POST   | `/api/auth/password`            | Change password and revoke other sessions          |
@@ -128,14 +128,14 @@ columns (`size_bytes`, `amount_cents`, timestamps), and inserts rows in foreign-
 | `server/db/migrate.js`                  | Migration runner and baseline detection                |
 | `server/db/demo-data.js`                | Demo data importer for the setup wizard                |
 | `server/routes/setup.js`                | Setup status, connection, migrate, install endpoints   |
-| `server/routes/auth.js`                 | Login, signup, logout, current user, sessions          |
+| `server/routes/auth.js`                 | Login, logout, current user, sessions                  |
 | `server/routes/bootstrap.js`            | Authenticated workspace snapshot and serializers       |
 | `server/routes/workspace.js`            | Revisioned workspace persistence and cascades          |
 | `server/auth/session.js`                | Cookie sessions, token hashing, auth context           |
-| `server/db/create-workspace.js`         | Shared owner/workspace creation for setup and signup   |
+| `server/db/create-workspace.js`         | Shared owner/workspace creation for setup              |
 | `database/migrations/`                  | SQL migrations (`001_initial`, `002_platform`)         |
 | `src/pages/setup.js`                    | First-run setup wizard UI                              |
-| `src/actions/auth.js`                   | Real login/signup/logout UI actions                    |
+| `src/actions/auth.js`                   | Real login/logout UI actions                           |
 | `src/api/backend.js`                    | Fetch client for the Fastify `/api` endpoints          |
 | `src/api/config.js`                     | Demo mode (`file` / `database`), latency, storage keys |
 | `src/api/client.js`                     | In-browser `request()` and per-resource helpers        |

@@ -37,7 +37,6 @@ export const backend = {
   auth: {
     me: () => request('GET', '/auth/me'),
     login: body => request('POST', '/auth/login', body),
-    signup: body => request('POST', '/auth/signup', body),
     logout: () => request('POST', '/auth/logout', {}),
     changePassword: body => request('POST', '/auth/password', body),
     sessions: () => request('GET', '/auth/sessions'),

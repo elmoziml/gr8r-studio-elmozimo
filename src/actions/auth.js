@@ -63,43 +63,6 @@ A.doLogin = async () => {
   }
 };
 
-A.doSignup = async () => {
-  const errors = (S.ui.errors = {});
-  const name = $('#s-name').value.trim();
-  const email = $('#s-email').value.trim();
-  const password = $('#s-pw').value;
-  const workspaceName = $('#s-workspace')?.value.trim() || '';
-  S.ui.af.name = name;
-  S.ui.af.email = email;
-  if (!name) errors.name = t('auth.err.name');
-  if (!EMAIL_RE.test(email)) errors.email = t('auth.err.workEmail');
-  if (password.length < 10 || !/[0-9\W]/.test(password)) errors.pw = t('auth.err.pwWeak');
-  if (Object.keys(errors).length) {
-    render();
-    return;
-  }
-
-  if (S.ui.authBusy) return;
-  S.ui.authBusy = true;
-  setLoading('signup-btn', true);
-  try {
-    await backend.auth.signup({ name, email, password, workspaceName });
-    await hydrateServer();
-    S.ui.authBusy = false;
-    enterApp(t('auth.signedInAs', { email }));
-  } catch (error) {
-    S.ui.authBusy = false;
-    if (error.status === 409) S.ui.errors.email = t('auth.err.emailTaken');
-    else S.ui.errors.signup = error.message || t('auth.err.generic');
-    setLoading('signup-btn', false);
-    render();
-  }
-};
-
-A.socialAuth = () => toast(t('auth.socialUnavailable'), { kind: 'info' });
-A.doForgot = () => toast(t('auth.resetUnavailable'), { kind: 'info' });
-A.doReset = () => toast(t('auth.resetUnavailable'), { kind: 'info' });
-
 A.signOut = async () => {
   S.ui.pop = null;
   S.ui.palette = null;
@@ -114,6 +77,9 @@ A.signOut = async () => {
   S.mode = 'demo';
   S.ui.auth = 'login';
   S.ui.errors = {};
+  S.ui.af = { email: '', name: '' };
+  S.ui.showPw = false;
+  S.ui.pwNew = '';
   render();
 };
 

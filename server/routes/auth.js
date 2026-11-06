@@ -1,6 +1,6 @@
 import argon2 from 'argon2';
 import { getPool } from '../db/pool.js';
-import { createOwnerWorkspace, hashPassword } from '../db/create-workspace.js';
+import { hashPassword } from '../db/create-workspace.js';
 import { clearSessionCookie, createSession, getAuthContext, getUserContext, readSession, revokeSession, touchSession } from '../auth/session.js';
 
 const EMAIL_RE = /^\S+@\S+\.\S+$/;
@@ -33,11 +33,6 @@ function checkRateLimit(key) {
 
 function clearRateLimit(key) {
   attempts.delete(key);
-}
-
-async function setupCompleted() {
-  const result = await getPool().query("select value from app_settings where key = 'setup_completed'");
-  return Boolean(result.rows[0]?.value?.completed);
 }
 
 async function authPayload(context) {
@@ -85,44 +80,6 @@ export async function registerAuthRoutes(fastify) {
     clearRateLimit(key);
     await createSession(user.id, request, reply);
     const context = await getUserContext({ id: user.id, email: user.email, name: user.name });
-    return { data: await authPayload(context) };
-  });
-
-  fastify.post('/api/auth/signup', async (request, reply) => {
-    if (!(await setupCompleted())) throw httpError(403, 'Setup is not complete');
-    const name = String(request.body?.name || '').trim();
-    const email = String(request.body?.email || '')
-      .trim()
-      .toLowerCase();
-    const password = String(request.body?.password || '');
-    const workspaceName = String(request.body?.workspaceName || '').trim() || `${name.split(/\s+/)[0] || 'My'}'s Workspace`;
-    if (!name) throw httpError(422, 'Name is required');
-    if (!EMAIL_RE.test(email)) throw httpError(422, 'A valid email is required');
-    validatePassword(password);
-
-    const exists = await getPool().query('select 1 from users where lower(email) = $1', [email]);
-    if (exists.rowCount) throw httpError(409, 'An account with this email already exists');
-
-    const client = await getPool().connect();
-    let created;
-    try {
-      await client.query('begin');
-      created = await createOwnerWorkspace(client, {
-        admin: { name, email, password },
-        workspace: { name: workspaceName },
-        demoData: false,
-      });
-      await client.query('commit');
-    } catch (error) {
-      await client.query('rollback');
-      if (error.code === '23505') throw httpError(409, 'An account with this email already exists');
-      throw error;
-    } finally {
-      client.release();
-    }
-
-    await createSession(created.userId, request, reply);
-    const context = await getUserContext({ id: created.userId, email, name });
     return { data: await authPayload(context) };
   });
 

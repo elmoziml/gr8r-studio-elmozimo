@@ -107,7 +107,8 @@ Self-hosted deployments use `server/` (Fastify + PostgreSQL). On first load, the
 which tests the database, creates the schema, creates the owner account, and optionally imports
 demo data. The setup API locks after completion.
 
-After setup, login and open registration use Argon2id passwords and HTTP-only cookie sessions.
+After setup, login uses Argon2id passwords and HTTP-only cookie sessions. Registration is disabled;
+owners and admins create accounts directly from workspace settings.
 `GET /api/bootstrap` supplies the authenticated workspace snapshot to the existing synchronous
 store. UI edits are persisted with `PUT /api/workspace`, a revision-checked full-workspace sync
 covering projects, tasks, comments, teams, members, settings, views, files metadata, and
