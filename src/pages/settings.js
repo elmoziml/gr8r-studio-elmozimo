@@ -4,7 +4,7 @@
 import { dOff, esc, fmtDate } from '../core/utils.js';
 import { ic, wsLogo } from '../core/icons.js';
 import { t } from '../core/i18n.js';
-import { D, S, me } from '../core/store.js';
+import { D, S, canManageMembers, me } from '../core/store.js';
 import { av, pIcon } from '../ui/helpers.js';
 import { permsTable, teamsGrid } from './members.js';
 import { page404 } from './errors.js';
@@ -237,7 +237,7 @@ export function settingsBody(sec, title) {
     case 'members':
       return (
         H(t('set.mem.access', { n: d.members.length, ws: esc(d.ws.name) })) +
-        `<div class="row" style="margin-bottom:12px"><button class="btn btn-primary" data-a="invite">${ic('user-plus', 14)}${t('home.invite')}</button><button class="btn btn-secondary" data-a="go" data-r="members">${t('set.mem.directory')}</button></div>
+        `<div class="row" style="margin-bottom:12px">${canManageMembers() ? `<button class="btn btn-primary" data-a="addMember">${ic('user-plus', 14)}${t('home.invite')}</button>` : ''}<button class="btn btn-secondary" data-a="go" data-r="members">${t('set.mem.directory')}</button></div>
       <div class="panel" style="overflow:hidden">${d.members.map(m => `<div class="mini" style="min-height:52px;cursor:default" data-ctx="member" data-id="${m.id}">${av(m.id, 'md', false)}<div class="grow"><div style="font-weight:500">${esc(m.name)}</div><div class="faint" style="font-size:12px">${esc(m.email)}</div></div>${m.status === 'invited' ? `<span class="badge amber">${t('set.mem.invited')}</span>` : ''}${m.role === 'Owner' ? `<span class="pillbtn">${ic('crown', 13)}${t('set.mem.owner')}</span>` : `<button class="pillbtn bordered" data-a="pop" data-pop="role" data-id="${m.id}">${m.role}${ic('chevron-down', 12)}</button>`}<button class="ibtn ibtn-sm" data-a="ctxBtn" data-ctx="member" data-id="${m.id}" aria-label="${t('set.mem.options')}">${ic('ellipsis', 14)}</button></div>`).join('')}</div>`
       );
     case 'teams':

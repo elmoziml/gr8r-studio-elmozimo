@@ -3,7 +3,7 @@ import { $, MOD, TODAY, addD, dOff, diffD, esc, fmtDate, iso, monthLong, parse, 
 import { ic, wsLogo } from '../core/icons.js';
 import { t, lv } from '../core/i18n.js';
 import { LABELS, PRIOS, PSTAT, STATUSES } from '../core/constants.js';
-import { D, S, allTasks, canSee, me, mem, pColor, proj, task, visibleProjects } from '../core/store.js';
+import { D, S, allTasks, canManageMembers, canSee, me, mem, pColor, proj, task, visibleProjects } from '../core/store.js';
 import { av, avStack, prIcon, stIcon } from '../ui/helpers.js';
 import { focusKey, render } from '../shell/render.js';
 import { FIELDS, viewOf } from '../shell/view-engine.js';
@@ -98,7 +98,7 @@ export function popHtml(p) {
   const t = ['status', 'priority', 'assignee', 'labels', 'date', 'project', 'deps', 'recur', 'estimate'].includes(p.type) ? tgt(p) : null;
   switch (p.type) {
     case 'create':
-      inner = `<div class="mh">Create</div><button class="mi" data-a="newTask">${ic('circle-check', 15)}Task<span class="r"><kbd>N</kbd></span></button><button class="mi" data-a="newProject">${ic('folder-plus', 15)}Project<span class="r"><kbd>P</kbd></span></button><button class="mi" data-a="newTeam">${ic('users', 15)}Team</button><div class="msep"></div><button class="mi" data-a="invite">${ic('user-plus', 15)}Invite member</button>`;
+      inner = `<div class="mh">Create</div><button class="mi" data-a="newTask">${ic('circle-check', 15)}Task<span class="r"><kbd>N</kbd></span></button><button class="mi" data-a="newProject">${ic('folder-plus', 15)}Project<span class="r"><kbd>P</kbd></span></button><button class="mi" data-a="newTeam">${ic('users', 15)}Team</button>${canManageMembers() ? `<div class="msep"></div><button class="mi" data-a="addMember">${ic('user-plus', 15)}Add member</button>` : ''}`;
       style = 'width:220px';
       break;
     case 'subassignee': {
@@ -223,7 +223,7 @@ export function popHtml(p) {
         )
         .join(
           '',
-        )}<div class="msep"></div><button class="mi" data-a="newWorkspace">${ic('plus', 15)}Create workspace</button><button class="mi" data-a="go" data-r="settings" data-sec="workspace">${ic('settings', 15)}Workspace settings</button><button class="mi" data-a="invite">${ic('user-plus', 15)}Invite members</button><div class="msep"></div><button class="mi" data-a="signOut">${ic('log-out', 15)}Sign out</button>`;
+        )}<div class="msep"></div><button class="mi" data-a="newWorkspace">${ic('plus', 15)}Create workspace</button><button class="mi" data-a="go" data-r="settings" data-sec="workspace">${ic('settings', 15)}Workspace settings</button>${canManageMembers() ? `<button class="mi" data-a="addMember">${ic('user-plus', 15)}Add member</button>` : ''}<div class="msep"></div><button class="mi" data-a="signOut">${ic('log-out', 15)}Sign out</button>`;
       style = 'width:260px';
       break;
     case 'user':

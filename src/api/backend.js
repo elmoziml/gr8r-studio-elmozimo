@@ -46,6 +46,7 @@ export const backend = {
   },
   bootstrap: () => request('GET', '/bootstrap'),
   saveWorkspace: document => request('PUT', '/workspace', document),
+  addMember: body => request('POST', '/workspace/members', body),
   activateWorkspace: id => request('POST', `/workspaces/${encodeURIComponent(id)}/activate`, {}),
   deleteWorkspace: id => request('DELETE', `/workspaces/${encodeURIComponent(id)}`),
 };

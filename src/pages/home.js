@@ -2,7 +2,7 @@
 import { DAY, TODAY, diffD, esc, fmtDate, locale, monthLong, parse, wdayLong } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { t } from '../core/i18n.js';
-import { D, S, allTasks, canSee, isOver, pColor, progressOf, proj, visibleProjects } from '../core/store.js';
+import { D, S, allTasks, canManageMembers, canSee, isOver, pColor, progressOf, proj, visibleProjects } from '../core/store.js';
 import { av, avStack, empty, pIcon, pStatus, prIcon, progBar } from '../ui/helpers.js';
 import { sortTasks } from '../shell/view-engine.js';
 import { actHtml, miniRow } from '../components/task-list.js';
@@ -41,7 +41,7 @@ export function pageHome() {
   const dls = [dl(localeWords('rel.today'), 0, 0), dl(localeWords('rel.tomorrow'), 1, 1), dl(localeWords('rel.thisWeek'), 2, 7)];
   return `<div class="page">
     <div class="ph"><div><h1>${greet}, ${esc(S.prefs.name.split(' ')[0])}</h1><p><span class="num">${wdayLong(TODAY)}, ${monthLong(TODAY)} ${TODAY.getDate()}</span> · ${t('home.happening')}</p></div>
-      <div class="acts"><button class="btn btn-secondary hide-m" data-a="invite">${ic('user-plus', 14)}${t('home.invite')}</button><button class="btn btn-secondary hide-m" data-a="newProject">${ic('folder-plus', 14)}${t('home.newProject')}</button><button class="btn btn-primary" data-a="newTask">${ic('plus', 14)}${t('home.newTask')}</button></div></div>
+      <div class="acts">${canManageMembers() ? `<button class="btn btn-secondary hide-m" data-a="addMember">${ic('user-plus', 14)}${t('home.invite')}</button>` : ''}<button class="btn btn-secondary hide-m" data-a="newProject">${ic('folder-plus', 14)}${t('home.newProject')}</button><button class="btn btn-primary" data-a="newTask">${ic('plus', 14)}${t('home.newTask')}</button></div></div>
     <div class="stats" style="margin-bottom:16px">
       <button class="stat" data-a="go" data-r="projects"><span class="k">${ic('folder-kanban', 14)}${t('home.activeProjects')}</span><span class="v">${activeP.length}</span><span class="d">${t('home.atRisk', { n: activeP.filter(p => p.status === 'risk').length })}</span></button>
       <button class="stat" data-a="goTasks" data-f="open"><span class="k">${ic('circle-dashed', 14)}${t('home.openTasks')}</span><span class="v">${open.length}</span><span class="d">${t('home.assignedToYou', { n: open.filter(t => t.assignee === D().me).length })}</span></button>

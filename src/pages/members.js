@@ -3,7 +3,7 @@ import { ago, esc, minsAgo } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { t } from '../core/i18n.js';
 import { ROLES } from '../core/constants.js';
-import { D, S, TM, allTasks, canSee, isOver, me, mem, progressOf, team, teamsList, visibleProjects } from '../core/store.js';
+import { D, S, TM, allTasks, canManageMembers, canSee, isOver, me, mem, progressOf, team, teamsList, visibleProjects } from '../core/store.js';
 import { av, avStack, empty, pIcon, pStatus, progBar } from '../ui/helpers.js';
 import { sortTasks } from '../shell/view-engine.js';
 import { actHtml, miniRow } from '../components/task-list.js';
@@ -19,7 +19,7 @@ export function pageMembers() {
   const isAdmin = ['Owner', 'Admin'].includes(me().role);
   const tab = u.membersTab;
   return `<div class="page wide" style="max-width:1200px">
-    <div class="ph"><div><h1>${t('mem.title')}</h1><p>${t('mem.sub', { people: D().members.length, ws: esc(D().ws.name), pending: D().members.filter(m => m.status === 'invited').length })}</p></div><div class="acts"><button class="btn btn-primary" data-a="invite">${ic('user-plus', 14)}${t('mem.invite')}</button></div></div>
+    <div class="ph"><div><h1>${t('mem.title')}</h1><p>${t('mem.sub', { people: D().members.length, ws: esc(D().ws.name), pending: D().members.filter(m => m.status === 'invited').length })}</p></div><div class="acts">${canManageMembers() ? `<button class="btn btn-primary" data-a="addMember">${ic('user-plus', 14)}${t('mem.invite')}</button>` : ''}</div></div>
     <div class="tabs" style="margin-bottom:14px">${[
       ['members', t('mem.tabMembers')],
       ['teams', t('mem.tabTeams')],
@@ -103,7 +103,7 @@ export function pageTeam() {
   const ps = visibleProjects().filter(p => p.team === tm.id);
   const ts = allTasks().filter(x => ms.some(m => m.id === x.assignee) && x.status !== 'done');
   return `<div class="page">
-    <div class="ph"><div class="row" style="gap:12px"><span class="picon lg" style="--c:${tm.c}">${ic(tm.icon, 18)}</span><div><h1>${tm.name}</h1><p style="margin:2px 0 0">${tm.desc}</p></div></div><div class="acts"><button class="btn btn-secondary" data-a="editTeam" data-id="${tm.id}">${ic('pencil', 14)}${t('mem.editTeam')}</button><button class="btn btn-secondary" data-a="invite">${ic('user-plus', 14)}${t('mem.inviteWs')}</button></div></div>
+    <div class="ph"><div class="row" style="gap:12px"><span class="picon lg" style="--c:${tm.c}">${ic(tm.icon, 18)}</span><div><h1>${tm.name}</h1><p style="margin:2px 0 0">${tm.desc}</p></div></div><div class="acts"><button class="btn btn-secondary" data-a="editTeam" data-id="${tm.id}">${ic('pencil', 14)}${t('mem.editTeam')}</button>${canManageMembers() ? `<button class="btn btn-secondary" data-a="addMember" data-team="${tm.id}">${ic('user-plus', 14)}${t('mem.inviteWs')}</button>` : ''}</div></div>
     <div class="grid2"><div class="stack">
       <section class="panel"><div class="panel-h"><h2>${t('mem.projects')}</h2><span class="faint">${ps.length}</span></div>${ps.map(p => `<div class="mini" data-a="go" data-r="project" data-id="${p.id}">${pIcon(p, '', 14)}<span class="tt">${esc(p.name)}</span>${pStatus(p.status)}<span class="row" style="width:120px">${progBar(progressOf(p.id))}</span></div>`).join('') || `<div class="panel-b faint">${t('mem.noProjects')}</div>`}</section>
       <section class="panel"><div class="panel-h"><h2>${t('mem.openTasks')}</h2><span class="faint">${ts.length}</span></div>${sortTasks(ts, {

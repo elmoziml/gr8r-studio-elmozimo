@@ -3,7 +3,7 @@ import { MOD, clamp, esc } from '../core/utils.js';
 import { LOGO, ic, wsLogo } from '../core/icons.js';
 import { t, lv } from '../core/i18n.js';
 import { PSTAT } from '../core/constants.js';
-import { D, S, allTasks, pColor, proj, save, task } from '../core/store.js';
+import { D, S, allTasks, canManageMembers, pColor, proj, save, task } from '../core/store.js';
 import { FT, av, hl, stIcon } from '../ui/helpers.js';
 import { effectiveDark } from '../core/theme.js';
 import { go, render } from '../shell/render.js';
@@ -51,7 +51,7 @@ export function commands() {
       kbd: MOD + ' ⇧ L',
       run: () => A.toggleDark(),
     },
-    { id: 'c-inv', name: t('pal.inviteMember'), icon: 'user-plus', run: () => A.invite() },
+    ...(canManageMembers() ? [{ id: 'c-inv', name: t('pal.inviteMember'), icon: 'user-plus', run: () => A.addMember() }] : []),
     { id: 'c-side', name: t('pal.toggleSidebar'), icon: 'panel-left', kbd: '[', run: () => A.toggleSide() },
     { id: 'c-keys', name: t('pal.keyboardShortcuts'), icon: 'keyboard', kbd: '?', run: () => A.shortcuts() },
     { id: 'c-out', name: t('pal.signOut'), icon: 'log-out', run: () => A.signOut() },

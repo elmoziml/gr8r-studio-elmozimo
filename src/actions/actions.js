@@ -3,11 +3,12 @@
    ===================================================================== */
 import { $, $$, TODAY, addD, dOff, esc, fmtDate, iso, parse, uid } from '../core/utils.js';
 import { PR, PSTAT, ST } from '../core/constants.js';
-import { D, DEFAULT_PREFS, S, allTasks, canSee, commentsOf, freshData, logAct, me, mem, proj, save, task, tasksOf, visibleProjects } from '../core/store.js';
+import { D, DEFAULT_PREFS, S, allTasks, canManageMembers, canSee, commentsOf, freshData, hydrateServer, logAct, me, mem, proj, save, saveNow, task, tasksOf, visibleProjects } from '../core/store.js';
 import { fileType, fsize } from '../ui/helpers.js';
 import { effectiveDark } from '../core/theme.js';
 import { t, lv } from '../core/i18n.js';
 import { mutate, toast } from '../ui/toast.js';
+import { backend } from '../api/backend.js';
 import { autosize, focusKey, fxSet, go, render } from '../shell/render.js';
 import { viewOf } from '../shell/view-engine.js';
 import { TEMPLATES, closeModal, openModal } from '../overlays/modals.js';
@@ -1504,68 +1505,90 @@ IN.shareAccess = el => {
     p.access = el.value;
   });
 };
-A.invite = () => {
-  S.ui.inviteDraft = '';
+A.addMember = el => {
+  if (!canManageMembers()) return;
+  S.ui.addMemberDraft = el?.dataset?.team ? { team: el.dataset.team } : {};
   S.ui.errors = {};
   S.ui.pop = null;
-  openModal({ type: 'invite' });
+  openModal({ type: 'addMember' });
 };
-A.submitInvite = () => {
-  const raw = $('#inv-emails').value;
-  S.ui.inviteDraft = raw;
-  const role = $('#inv-role').value;
-  const team = $('#inv-team').value;
-  const list = raw
-    .split(/[\s,;]+/)
-    .map(s => s.trim())
-    .filter(Boolean);
-  const bad = list.filter(e => !/^\S+@\S+\.\S+$/.test(e));
-  if (!list.length) {
-    S.ui.errors.invite = t('act.err.enterEmail');
+A.submitAddMember = async () => {
+  if (!canManageMembers()) return;
+  const email = $('#add-email').value.trim().toLowerCase();
+  const name = $('#add-name').value.trim();
+  const password = $('#add-password').value;
+  const role = $('#add-role').value;
+  const team = $('#add-team').value;
+  S.ui.addMemberDraft = { email, name, role, team };
+  const fail = msg => {
+    S.ui.errors.addMember = msg;
     render();
-    return;
+  };
+  if (!EMAIL_RE.test(email)) return fail(t('auth.err.emailValid'));
+  if (password.length < 10 || !/[0-9\W]/.test(password)) return fail(t('act.err.passwordShort'));
+  if (S.mode !== 'server' && D().members.some(m => m.email.toLowerCase() === email)) return fail(t('act.err.memberExists'));
+  const btn = $('#add-submit');
+  if (btn?.disabled) return;
+  const unlock = () => {
+    if (!btn) return;
+    btn.disabled = false;
+    btn.classList.remove('is-loading');
+    btn.removeAttribute('aria-busy');
+  };
+  if (btn) {
+    btn.disabled = true;
+    btn.classList.add('is-loading');
+    btn.setAttribute('aria-busy', 'true');
   }
-  if (bad.length) {
-    S.ui.errors.invite = t('inv.err.emailBad', { email: bad[0] });
-    render();
-    return;
-  }
-  loadingBtn('inv-submit', 600, () => {
+  if (S.mode !== 'server') {
     if (
-      !mutate(() =>
-        list.forEach(e => {
-          if (!D().members.some(m => m.email === e))
-            D().members.push({
-              id: uid('m'),
-              name: e
-                .split('@')[0]
-                .replace(/[._-]+/g, ' ')
-                .replace(/\b\w/g, c => c.toUpperCase()),
-              email: e,
-              role,
-              team,
-              title: role,
-              c: '#6B7280',
-              status: 'invited',
-              last: null,
-              tz: '—',
-            });
-        }),
-      )
-    )
+      !mutate(() => {
+        D().members.push({
+          id: uid('m'),
+          name: name || email.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          email,
+          role,
+          team,
+          title: role,
+          c: '#6B7280',
+          status: 'active',
+          last: null,
+          tz: '—',
+        });
+      })
+    ) {
+      unlock();
       return;
+    }
     S.ui.modals.pop();
     S.ui.errors = {};
     render();
-    toast(t('toast.invitationsSent', { n: list.length, s: list.length > 1 ? 's' : '' }));
-  });
+    toast(t('toast.memberAdded', { email }));
+    return;
+  }
+  try {
+    await saveNow();
+    const result = await backend.addMember({ email, name, password, role, team });
+    S.ui.modals.pop();
+    S.ui.errors = {};
+    try {
+      await hydrateServer();
+    } catch {
+      if (!D().members.some(m => m.id === result.member.id)) D().members.push(result.member);
+    }
+    render();
+    toast(t(result.existingUser ? 'toast.memberLinked' : 'toast.memberAdded', { email }));
+  } catch (error) {
+    const msg =
+      error.status === 403
+        ? t('act.err.noPermission')
+        : error.status === 409
+          ? t('act.err.memberExists')
+          : error.message || t('act.err.addMember');
+    fail(msg);
+  }
 };
 A.copyInviteLink = () => copy(`https://gr8rstudio.com/join/${D().ws.url}-7f3k2`, t('toast.inviteLinkCopied'));
-A.resendInvite = el => {
-  S.ui.pop = null;
-  render();
-  toast(t('toast.inviteResent', { email: mem(el.dataset.id).email }));
-};
 A.viewProfile = el => go('member', { id: el.dataset.id });
 A.assignToMember = el => {
   S.ui.pop = null;

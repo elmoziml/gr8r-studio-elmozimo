@@ -176,6 +176,7 @@ export function save() {
 /* ---------- lookups ---------- */
 export const D = () => S.data;
 export const me = () => D().members.find(m => m.id === D().me);
+export const canManageMembers = () => ['Owner', 'Admin'].includes(me()?.role);
 export const mem = id => D().members.find(m => m.id === id);
 export const proj = id => D().projects.find(p => p.id === id);
 export const task = id => D().tasks.find(t => t.id === id);

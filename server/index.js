@@ -10,6 +10,7 @@ import setupRoutes, { getSetupStatus } from './routes/setup.js';
 import { registerAuthRoutes } from './routes/auth.js';
 import { registerBootstrapRoutes } from './routes/bootstrap.js';
 import { registerWorkspaceRoutes } from './routes/workspace.js';
+import { registerMemberRoutes } from './routes/members.js';
 
 const PORT = Number(process.env.PORT || 4000);
 const HOST = process.env.HOST || '0.0.0.0';
@@ -29,6 +30,7 @@ export async function buildServer(options = {}) {
   await app.register(registerAuthRoutes);
   await app.register(registerBootstrapRoutes);
   await app.register(registerWorkspaceRoutes);
+  await app.register(registerMemberRoutes);
 
   app.get('/api/health', async () => {
     const status = await getSetupStatus();

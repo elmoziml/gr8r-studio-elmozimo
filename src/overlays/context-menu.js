@@ -2,7 +2,7 @@
 import { ic } from '../core/icons.js';
 import { t, lv } from '../core/i18n.js';
 import { ST } from '../core/constants.js';
-import { D, mem, proj, task, visibleProjects } from '../core/store.js';
+import { D, canManageMembers, mem, proj, task, visibleProjects } from '../core/store.js';
 
 export function ctxMenu(p) {
   const I = (act, icon, label, extra = '', r = '') =>
@@ -59,14 +59,13 @@ export function ctxMenu(p) {
   if (p.ctx === 'member') {
     const m = mem(p.id);
     if (!m) return '';
-    const canRm = m.role !== 'Owner' && m.id !== D().me;
+    const canRm = canManageMembers() && m.role !== 'Owner' && m.id !== D().me;
     return (
       I('viewProfile', 'user', t('ctx.viewProfile')) +
       I('assignToMember', 'plus', t('ctx.assignTask')) +
       I('copyEmail', 'mail', t('ctx.copyEmail')) +
       (canRm
         ? I('ctxRole', 'shield', t('ctx.changeRole')) +
-          (m.status === 'invited' ? I('resendInvite', 'send', t('ctx.resendInvite')) : '') +
           sep +
           I('removeMember', 'user-minus', t('ctx.removeFromWorkspace'), 'danger')
         : '')

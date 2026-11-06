@@ -3,7 +3,7 @@ import { $$, MOD, ago, esc, fmtDate } from '../core/utils.js';
 import { ic } from '../core/icons.js';
 import { t } from '../core/i18n.js';
 import { PCOLORS, PICONS } from '../core/constants.js';
-import { D, S, mem, pColor, proj, task, teamsList } from '../core/store.js';
+import { D, S, me, mem, pColor, proj, task, teamsList } from '../core/store.js';
 import { FT, av, filePrev, lbl, prPill, stPill } from '../ui/helpers.js';
 import { focusKey, render } from '../shell/render.js';
 import { teamModal } from '../features/teams.js';
@@ -37,8 +37,8 @@ export function modalHtml(m) {
       return wrap('', projectModal(m, H));
     case 'share':
       return wrap('', shareModal(m, H));
-    case 'invite':
-      return wrap('', inviteModal(m, H));
+    case 'addMember':
+      return wrap('', addMemberModal(m, H));
     case 'confirm':
       return wrap('sm', confirmModal(m, H));
     case 'prompt':
@@ -214,18 +214,25 @@ export function shareModal(m, H) {
   </div>
   <div class="modal-f"><button class="btn btn-secondary" data-a="copyLink" data-pid="${p.id}">${ic('link', 14)}${t('m.copyLink')}</button><span class="sp"></span><button class="btn btn-primary" data-a="closeModal">${t('m.done')}</button></div>`;
 }
-export function inviteModal(m, H) {
-  const err = S.ui.errors.invite;
-  return `${H(t('m.inviteTitle', { ws: esc(D().ws.name) }), t('m.inviteSub'))}
-  <form class="modal-b" data-submit="submitInvite">
-    <div class="field"><label class="label" for="inv-emails">${t('m.emailAddresses')}</label><textarea class="textarea ${err ? 'is-error' : ''}" id="inv-emails" placeholder="${t('m.emailPh')}" rows="3" autofocus>${esc(S.ui.inviteDraft || '')}</textarea>${err ? `<span class="err">${ic('circle-alert', 12)}${err}</span>` : `<span class="hint">${t('m.separateAddresses')}</span>`}</div>
-    <div class="row" style="gap:12px"><div class="field grow"><label class="label" for="inv-role">${t('m.role')}</label><select class="select" id="inv-role">${['Member', 'Admin', 'Guest'].map(r => `<option>${r}</option>`).join('')}</select></div>
-    <div class="field grow"><label class="label" for="inv-team">${t('m.team')}</label><select class="select" id="inv-team">${teamsList()
-      .map(tm => `<option value="${tm.id}">${tm.name}</option>`)
+export function addMemberModal(m, H) {
+  const err = S.ui.errors.addMember;
+  const draft = S.ui.addMemberDraft || {};
+  const roles = me()?.role === 'Owner' ? ['Member', 'Admin', 'Guest', 'Owner'] : ['Member', 'Admin', 'Guest'];
+  return `${H(t('m.addTitle', { ws: esc(D().ws.name) }), t('m.addSub'))}
+  <form class="modal-b" data-submit="submitAddMember">
+    <div class="field"><label class="label" for="add-email">${t('auth.email')}</label><input class="input ${err ? 'is-error' : ''}" id="add-email" type="email" autocomplete="off" value="${esc(draft.email || '')}" autofocus></div>
+    <div class="field"><label class="label" for="add-name">${t('m.nameOptional')}</label><input class="input" id="add-name" autocomplete="off" value="${esc(draft.name || '')}"></div>
+    <div class="field"><label class="label" for="add-password">${t('auth.password')}</label><input class="input" id="add-password" type="password" autocomplete="new-password"><span class="hint">${t('auth.pwHint')}</span></div>
+    ${err ? `<span class="err">${ic('circle-alert', 12)}${err}</span>` : ''}
+    <div class="row" style="gap:12px"><div class="field grow"><label class="label" for="add-role">${t('m.role')}</label><select class="select" id="add-role">${roles
+      .map(r => `<option ${draft.role === r ? 'selected' : ''}>${r}</option>`)
+      .join('')}</select></div>
+    <div class="field grow"><label class="label" for="add-team">${t('m.team')}</label><select class="select" id="add-team">${teamsList()
+      .map(tm => `<option value="${tm.id}" ${draft.team === tm.id ? 'selected' : ''}>${tm.name}</option>`)
       .join('')}</select></div></div>
-    <div class="alert info">${ic('info', 14)}<span><b>${t('m.guests')}</b> ${t('m.guestsNote')}</span></div>
+    <div class="alert info">${ic('info', 14)}<span>${t('m.addInfo')}</span></div>
   </form>
-  <div class="modal-f"><button class="btn btn-ghost" data-a="copyInviteLink">${ic('link', 14)}${t('m.copyInviteLink')}</button><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal">${t('modal.cancel')}</button><button class="btn btn-primary" data-a="submitInvite" id="inv-submit">${t('m.sendInvites')}</button></div>`;
+  <div class="modal-f"><span class="sp"></span><button class="btn btn-secondary" data-a="closeModal">${t('modal.cancel')}</button><button class="btn btn-primary" data-a="submitAddMember" id="add-submit">${t('m.addMember')}</button></div>`;
 }
 export function confirmModal(m) {
   const needs = m.typeName;
